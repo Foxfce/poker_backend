@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id             String @id @default(uuid())
+  username       String @unique @db.VarChar(100)
+  nick_name      String @db.VarChar(100)
+  email          String @unique
+  password       String @db.Text
+  current_pocket Float  @default(20000)
+  total_win      Int    @default(0)
+  total_losees   Int    @default(0)
+  total_earning  Float
+
+  //Relation to Table
+  created   Table[] @relation("creator")
+  asplayer2 Table[] @relation("player2")
+  asplayer3 Table[] @relation("player3")
+  asplayer4 Table[] @relation("player4")
+
+  //win game
+  win_game Game[]
+
+  //in game session ID
+  player_game Player_Game[]
+}
+
+//Lobby Zone----------------------------------------------------------------------
+
+model Table {
+  id String @id @default(uuid())
+
+  creator Player  @relation("creator", fields: [creator_Id], references: [id])
+  player2 Player? @relation("player2", fields: [player2_Id], references: [id])
+  player3 Player? @relation("player3", fields: [player3_Id], references: [id])
+  player4 Player? @relation("player4", fields: [player4_Id], references: [id])
+
+  creator_Id String
+  player2_Id String?
+  player3_Id String?
+  player4_Id String?
+
+  max_player Int      @default(1)
+  min_buy_in Int      @default(20)
+  create_at  DateTime @default(now()) @db.Timestamp(3)
+
+  game Game[]
+}
+
+//----------------------------------------------------------------------------------
+
+// Game session Zone
+
+model Game {
+  id String @id @default(uuid()) @db.VarChar(10)
+
+  table    Table  @relation(fields: [table_id], references: [id])
+  table_id String
+
+  winner    Player? @relation(fields: [winner_id], references: [id])
+  winner_id String?
+
+  start_time DateTime  @default(now())
+  end_time   DateTime?
+
+  table_card  Table_Card[]
+  player_game Player_Game[]
+}
+
+model Table_Card {
+  id Int @id @default(autoincrement())
+
+  game    Game   @relation(fields: [game_id], references: [id])
+  game_id String @db.VarChar(10)
+
+  commu_card1 Card[] @relation("commu_card1")
+  commu_card2 Card[] @relation("commu_card2")
+  commu_card3 Card[] @relation("commu_card3")
+  commu_card4 Card[] @relation("commu_card4")
+  commu_card5 Card[] @relation("commu_card5")
+
+  round_number Int @default(0)
+
+  //start first round of betting with no card then revealed 2 card up to 5
+  is_revealed Int @default(2)
+}
+
+model Card {
+  id        Int       @id @default(autoincrement())
+  card_rank String    @unique @db.VarChar(2)
+  card_suit Card_Suit
+
+  commu_card1 Table_Card? @relation("commu_card1", fields: [commu_card1_id], references: [id])
+  commu_card2 Table_Card? @relation("commu_card2", fields: [commu_card2_id], references: [id])
+  commu_card3 Table_Card? @relation("commu_card3", fields: [commu_card3_id], references: [id])
+  commu_card4 Table_Card? @relation("commu_card4", fields: [commu_card4_id], references: [id])
+  commu_card5 Table_Card? @relation("commu_card5", fields: [commu_card5_id], references: [id])
+
+  commu_card1_id Int?
+  commu_card2_id Int?
+  commu_card3_id Int?
+  commu_card4_id Int?
+  commu_card5_id Int?
+
+  player_hand1 Player_Hand @relation("hole_card1", fields: [player_hand1_id], references: [id])
+  player_hand2 Player_Hand @relation("hole_card2", fields: [player_hand2_id], references: [id])
+
+  player_hand1_id Int
+  player_hand2_id Int
+}
+
+enum Card_Suit {
+  HEARTS
+  DIAMONDS
+  CLUBS
+  SPADES
+}
+
+model Player_Game {
+  id Int @id @default(autoincrement())
+
+  player    Player @relation(fields: [player_id], references: [id])
+  player_id String
+
+  game    Game   @relation(fields: [game_id], references: [id])
+  game_id String @db.VarChar(10)
+
+  bet_amount      Float
+  final_hand_rank Int
+  earning_change  Float
+  is_winner       Boolean
+
+  player_hand Player_Hand[]
+  bet         Bet[]
+}
+
+model Player_Hand {
+  id Int @id @default(autoincrement())
+
+  player_game    Player_Game @relation(fields: [player_game_id], references: [id])
+  player_game_id Int
+
+  hole_card1 Card[] @relation("hole_card1")
+  hole_card2 Card[] @relation("hole_card2")
+}
+
+model Bet {
+  id Int @id @default(autoincrement())
+
+  player_game    Player_Game? @relation(fields: [player_game_id], references: [id])
+  player_game_id Int?
+
+  amount       Float
+  round_number Int
+  is_raise     Boolean
+  timestamp    DateTime @default(now())
+}
