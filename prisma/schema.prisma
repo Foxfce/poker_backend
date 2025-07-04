@@ -15,15 +15,16 @@ datasource db {
 }
 
 model Player {
-  id             String @id @default(uuid())
-  username       String @unique @db.VarChar(100)
-  nick_name      String @db.VarChar(100)
-  email          String @unique
-  password       String @db.Text
-  current_pocket Float  @default(20000)
-  total_win      Int    @default(0)
-  total_losees   Int    @default(0)
-  total_earning  Float
+  id             Int         @id @default(autoincrement())
+  username       String      @unique @db.VarChar(100)
+  nick_name      String      @db.VarChar(100)
+  email          String      @unique
+  password       String      @db.Text
+  role           Player_Role @default(GUEST)
+  current_pocket Float       @default(2000)
+  total_win      Int         @default(0)
+  total_losees   Int         @default(0)
+  total_earning  Float       @default(0)
 
   //Relation to Table
   created   Table[] @relation("creator")
@@ -38,26 +39,40 @@ model Player {
   player_game Player_Game[]
 }
 
+enum Player_Role {
+  GUEST
+  MEMBER
+  ADMIN
+}
+
 //Lobby Zone----------------------------------------------------------------------
 
 model Table {
-  id String @id @default(uuid())
+  id             String     @id @db.Char(5)
+  table_name     String?
+  type           Table_Type @default(PUBLIC)
+  table_password String?
 
   creator Player  @relation("creator", fields: [creator_Id], references: [id])
   player2 Player? @relation("player2", fields: [player2_Id], references: [id])
   player3 Player? @relation("player3", fields: [player3_Id], references: [id])
   player4 Player? @relation("player4", fields: [player4_Id], references: [id])
 
-  creator_Id String
-  player2_Id String?
-  player3_Id String?
-  player4_Id String?
+  creator_Id Int
+  player2_Id Int?
+  player3_Id Int?
+  player4_Id Int?
 
   max_player Int      @default(1)
   min_buy_in Int      @default(20)
   create_at  DateTime @default(now()) @db.Timestamp(3)
 
   game Game[]
+}
+
+enum Table_Type {
+  PUBLIC
+  PRIVATE
 }
 
 //----------------------------------------------------------------------------------
@@ -71,7 +86,7 @@ model Game {
   table_id String
 
   winner    Player? @relation(fields: [winner_id], references: [id])
-  winner_id String?
+  winner_id Int?
 
   start_time DateTime  @default(now())
   end_time   DateTime?
@@ -133,7 +148,7 @@ model Player_Game {
   id Int @id @default(autoincrement())
 
   player    Player @relation(fields: [player_id], references: [id])
-  player_id String
+  player_id Int
 
   game    Game   @relation(fields: [game_id], references: [id])
   game_id String @db.VarChar(10)
