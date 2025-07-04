@@ -48,3 +48,18 @@ export const createTable = async (req, res, next) => {
     tableData
   });
 }
+
+export const deleteTable = async (req, res, next) => {
+  // Check when all players left the table (OPTIONAL : register match data log) delete table from database
+  const tableId = req.params.tableId
+
+  // Execute log the match Data
+  // prisma.match_Data.create({data: })
+
+  // Execute delete table
+  // prisma.table.delete({where: { id: tableId}})
+
+  res.status(200).json({
+    message: `Table ${tableId} has been deleted`
+  })
+}
