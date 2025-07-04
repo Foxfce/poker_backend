@@ -1,5 +1,4 @@
 import express from 'express';
-import { generatedTableId } from '../utils/id-generator.util.js';
 import {
     createTable,
     deleteTable,

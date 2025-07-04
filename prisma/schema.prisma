@@ -15,16 +15,17 @@ datasource db {
 }
 
 model Player {
-  id             Int         @id @default(autoincrement())
-  username       String      @unique @db.VarChar(100)
-  nick_name      String      @db.VarChar(100)
-  email          String      @unique
-  password       String      @db.Text
-  role           Player_Role @default(GUEST)
-  current_pocket Float       @default(2000)
-  total_win      Int         @default(0)
-  total_losees   Int         @default(0)
-  total_earning  Float       @default(0)
+  id              Int         @id @default(autoincrement())
+  username        String      @unique @db.VarChar(100)
+  nick_name       String      @db.VarChar(100)
+  email           String      @unique
+  password        String      @db.Text
+  role            Player_Role @default(GUEST)
+  profile_picture String?
+  current_pocket  Float       @default(2000)
+  total_win       Int         @default(0)
+  total_losees    Int         @default(0)
+  total_earning   Float       @default(0)
 
   //Relation to Table
   created   Table[] @relation("creator")
@@ -37,12 +38,32 @@ model Player {
 
   //in game session ID
   player_game Player_Game[]
+
+  //game log
+  game_log Game_Log[]
 }
 
 enum Player_Role {
   GUEST
   MEMBER
   ADMIN
+}
+
+// Stat Store
+model Game_Log {
+  id      Int    @id @default(autoincrement())
+  earning Float?
+
+  winner    Player @relation(fields: [winner_id], references: [id])
+  winner_id Int
+
+  win_hand1 Int
+  win_hand2 Int
+  win_hand3 Int
+  win_hand4 Int
+  win_hand5 Int
+
+  start_time DateTime @default(now()) @db.Timestamp(3)
 }
 
 //Lobby Zone----------------------------------------------------------------------
@@ -115,7 +136,7 @@ model Table_Card {
 
 model Card {
   id        Int       @id @default(autoincrement())
-  card_rank String    @unique @db.VarChar(2)
+  card_rank Card_Rank
   card_suit Card_Suit
 
   commu_card1 Table_Card? @relation("commu_card1", fields: [commu_card1_id], references: [id])
@@ -135,6 +156,8 @@ model Card {
 
   player_hand1_id Int
   player_hand2_id Int
+
+  @@unique([card_rank, card_suit])
 }
 
 enum Card_Suit {
@@ -142,6 +165,22 @@ enum Card_Suit {
   DIAMONDS
   CLUBS
   SPADES
+}
+
+enum Card_Rank {
+  TWO   @map("2")
+  THREE @map("3")
+  FOUR  @map("4")
+  FIVE  @map("5")
+  SIX   @map("6")
+  SEVEN @map("7")
+  EIGHT @map("8")
+  NINE  @map("9")
+  TEN   @map("10")
+  J
+  Q
+  K
+  A
 }
 
 model Player_Game {
