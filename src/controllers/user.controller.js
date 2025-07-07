@@ -30,6 +30,17 @@ export const getUserByEmail = (req, res, next) => {
   })
 }
 
+export const getUserById = (req, res, next) => {
+  // const email = req.user.email;
+  const id = req.params.id
+
+  const result = 'prisma.user.findUniqe({where : {id : +id}})'
+  res.status(200).json({
+    message: `Get ${id} user data successful`,
+    result
+  })
+}
+
 export const updateUserPassword = (req, res, next) => {
   req.user = {id:2};
   const id = req.user.id;

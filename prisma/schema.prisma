@@ -130,14 +130,14 @@ model Table_Card {
 
   round_number Int @default(0)
 
-  //start first round of betting with no card then revealed 2 card up to 5
-  is_revealed Int @default(2)
+  //start first round of betting with no card then revealed 3 card up to 5
+  is_revealed Int @default(3)
 }
 
 model Card {
   id        Int       @id @default(autoincrement())
   card_rank Card_Rank
-  card_suit Card_Suit
+  is_draw   Boolean   @default(false)
 
   commu_card1 Table_Card? @relation("commu_card1", fields: [commu_card1_id], references: [id])
   commu_card2 Table_Card? @relation("commu_card2", fields: [commu_card2_id], references: [id])
@@ -151,36 +151,11 @@ model Card {
   commu_card4_id Int?
   commu_card5_id Int?
 
-  player_hand1 Player_Hand @relation("hole_card1", fields: [player_hand1_id], references: [id])
-  player_hand2 Player_Hand @relation("hole_card2", fields: [player_hand2_id], references: [id])
+  player_hand1 Player_Hand? @relation("hole_card1", fields: [player_hand1_id], references: [id])
+  player_hand2 Player_Hand? @relation("hole_card2", fields: [player_hand2_id], references: [id])
 
-  player_hand1_id Int
-  player_hand2_id Int
-
-  @@unique([card_rank, card_suit])
-}
-
-enum Card_Suit {
-  HEARTS
-  DIAMONDS
-  CLUBS
-  SPADES
-}
-
-enum Card_Rank {
-  TWO   @map("2")
-  THREE @map("3")
-  FOUR  @map("4")
-  FIVE  @map("5")
-  SIX   @map("6")
-  SEVEN @map("7")
-  EIGHT @map("8")
-  NINE  @map("9")
-  TEN   @map("10")
-  J
-  Q
-  K
-  A
+  player_hand1_id Int?
+  player_hand2_id Int?
 }
 
 model Player_Game {
@@ -221,4 +196,62 @@ model Bet {
   round_number Int
   is_raise     Boolean
   timestamp    DateTime @default(now())
+}
+
+enum Card_Rank {
+  TWOC   @map("2c")
+  THREEC @map("3c")
+  FOURC  @map("4c")
+  FIVEC  @map("5c")
+  SIXC   @map("6c")
+  SEVENC @map("7c")
+  EIGHTC @map("8c")
+  NINEC  @map("9c")
+  TENC   @map("Tc")
+  JC     @map("Jc")
+  QC     @map("Qc")
+  KC     @map("Kc")
+  AC     @map("Ac")
+
+  TWOH   @map("2h")
+  THREEH @map("3h")
+  FOURH  @map("4h")
+  FIVEH  @map("5h")
+  SIXH   @map("6h")
+  SEVENH @map("7h")
+  EIGHTH @map("8h")
+  NINEH  @map("9h")
+  TENH   @map("Th")
+  JH     @map("Jh")
+  QH     @map("Qh")
+  KH     @map("Kh")
+  AH     @map("Ah")
+
+  TWOD   @map("2d")
+  THREED @map("3d")
+  FOURD  @map("4d")
+  FIVED  @map("5d")
+  SIXD   @map("6d")
+  SEVEND @map("7d")
+  EIGHTD @map("8d")
+  NINED  @map("9d")
+  TEND   @map("Td")
+  JD     @map("Jd")
+  QD     @map("Qd")
+  KD     @map("Kd")
+  AD     @map("Ad")
+
+  TWOS   @map("2s")
+  THREES @map("3s")
+  FOURS  @map("4s")
+  FIVES  @map("5s")
+  SIXS   @map("6s")
+  SEVENS @map("7s")
+  EIGHTS @map("8s")
+  NINES  @map("9s")
+  TENS   @map("Ts")
+  JS     @map("Js")
+  QS     @map("Qs")
+  KS     @map("Ks")
+  AS     @map("As")
 }
