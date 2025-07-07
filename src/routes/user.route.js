@@ -1,22 +1,21 @@
 import express from 'express';
 import {
-  getUserByEmail,
   getAllUserData,
-  deleteUser,
   updateUserPassword,
   updateUserEmail,
   getUserProfile,
-  getUserById
+  getUserById,
+  updateUserProfile
 } from '../controllers/user.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
 
 const userRoute = express.Router();
 
 userRoute.get('/all', getAllUserData);
-userRoute.get('/me', getUserProfile);
-userRoute.get('/get/:email', getUserByEmail);
-userRoute.get('/get/:id', getUserById);
-userRoute.patch('/password',updateUserPassword);
-userRoute.patch('/email',updateUserEmail);
-userRoute.delete('/:id', deleteUser);
+userRoute.get('/me', authMiddleware, getUserProfile);
+userRoute.post('/me', authMiddleware, updateUserProfile);
+userRoute.get('/get/:playerId', getUserById);
+userRoute.patch('/password', authMiddleware, updateUserPassword);
+userRoute.patch('/email', updateUserEmail);
 
 export default userRoute;

@@ -6,6 +6,7 @@ import tableRoute from './routes/table.route.js';
 import authRoute from './routes/auth.route.js';
 import lobbyRoute from './routes/lobby.route.js';
 import userRoute from './routes/user.route.js';
+import adminRoute from './routes/admin.route.js';
 
 const app = express();
 
@@ -21,7 +22,7 @@ app.use("/api/table",tableRoute);
 app.use("/api/user",userRoute);
 app.use("/api/news",(req, res)=>(res.json({message : "news fetch article update news or event announcement"})));
 app.use("/api/tournament",(req, res)=>(res.json({message : "tournament fetch paticipanted user"})));
-app.use("/api/admin",(req, res)=>(res.json({message : "GM room manage user member / ban"})));
+app.use("/api/admin",adminRoute);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

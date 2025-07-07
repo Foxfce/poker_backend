@@ -16,16 +16,17 @@ datasource db {
 
 model Player {
   id              Int         @id @default(autoincrement())
-  username        String      @unique @db.VarChar(100)
-  nick_name       String      @db.VarChar(100)
-  email           String      @unique
-  password        String      @db.Text
+  username        String?     @unique @db.VarChar(100)
+  nick_name       String?     @db.VarChar(100)
+  player_id       String      @unique @db.VarChar(5)
+  password        String?     @db.Text
   role            Player_Role @default(GUEST)
   profile_picture String?
+  about           String?
   current_pocket  Float       @default(2000)
-  total_win       Int         @default(0)
-  total_losees    Int         @default(0)
-  total_earning   Float       @default(0)
+  total_win       Int?        @default(0)
+  total_losees    Int?        @default(0)
+  total_earning   Float?      @default(0)
 
   //Relation to Table
   created   Table[] @relation("creator")

@@ -1,10 +1,16 @@
 import express from 'express';
+import {
+    forgotPassword,
+    login,
+    register,
+    resetPassword
+} from '../controllers/auth.controller.js';
 
 const authRoute = express.Router();
 
-authRoute.post('/login',(req, res, next)=>res.status(200).json({message : "Login User"}));
-authRoute.post('/register',(req, res, next)=>res.status(200).json({message : "Register User"}));
-authRoute.post('/forgot-password',(req, res, next)=>res.status(200).json({message : "Forgot Password"}));
-authRoute.post('/reset-password/:token',(req, res, next)=>res.status(200).json({message : "Reset Password"}));
+authRoute.post('/login', login);
+authRoute.post('/register', register);
+authRoute.post('/forgot-password', forgotPassword);
+authRoute.post('/reset-password/:token', resetPassword);
 
 export default authRoute;

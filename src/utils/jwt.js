@@ -1,0 +1,27 @@
+import jwt from 'jsonwebtoken';
+
+export const generateToken = (playerId) => {
+    const token = jwt.sign({ playerId }, process.env.JWT_SECRET, {
+        expiresIn: '1d',
+        algorithm: "HS256",
+    });
+    return token;
+}
+
+export const verifyToken = (token) => {
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+    return payload;
+}
+
+export const signResetToken = (playerId) => {
+    const payload = jwt.sign({ playerId }, process.env.RESET_SECRET, {
+        algorithm: "HS256",
+        expiresIn: '1h',
+    });
+    return payload;
+}
+
+export const verifyResettToken = (token) => {
+    const payload = jwt.verify(token, process.env.RESET_SECRET, { algorithms: ["HS256"] });
+    return payload;
+}

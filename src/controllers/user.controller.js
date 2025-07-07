@@ -1,58 +1,68 @@
 import prisma from "../config/prisma.client.js"
+import { updatePlayerPassword } from "../services/auth.service.js"
+import {
+  editPlayerProfile,
+  findPlayerBy,
+  getAllPlayer,
+  getPlayer
+} from "../services/user.service.js"
 import { createError } from "../utils/createError.js"
 
-export const getAllUserData = (req, res, next) => {
-  const result = 'prisma.user.findMany())'
+export const getAllUserData = async (req, res, next) => {
+  const result = await getAllPlayer()
+  
   res.status(200).json({
     message: "Get all user data successful",
     result
   })
 }
 
-export const getUserProfile = (req, res, next) => {
-  const id = req.user.id;
+export const getUserProfile = async (req, res, next) => {
+  const player_id = req.playerId;
 
-  const result = 'prisma.user.findUniqe())'
+  const player = await getPlayer(player_id);
   res.status(200).json({
-    message: "Get all user data successful",
+    message: "Get user data successful",
+    player
+  })
+}
+
+export const getUserById =async (req, res, next) => {
+  const playerId = req.params.playerId
+
+  const result = await findPlayerBy('player_id',playerId)
+  res.status(200).json({
+    message: `Get ${playerId} user data successful`,
     result
   })
 }
 
-export const getUserByEmail = (req, res, next) => {
-  // const email = req.user.email;
-  const email = req.params.email
+export const updateUserProfile = async (req, res, next) => {
+  const player_id = req.playerId;
+  const data = req.body  // edit nick_name , profile_picture, about
 
-  const result = 'prisma.user.findUniqe({where : {email : email}})'
+  const result = await editPlayerProfile(player_id,data);
   res.status(200).json({
-    message: `Get ${email} user data successful`,
+    message: `Update user id:${id} profile successful`,
     result
   })
 }
 
-export const getUserById = (req, res, next) => {
-  // const email = req.user.email;
-  const id = req.params.id
+export const updateUserPassword = async (req, res, next) => {
+  const player_id = req.playerId;
+  const { oldPassword, newPassword } = req.body;
 
-  const result = 'prisma.user.findUniqe({where : {id : +id}})'
-  res.status(200).json({
-    message: `Get ${id} user data successful`,
-    result
-  })
-}
+  if(!oldPassword || !newPassword) createError(400, "Empty password");
 
-export const updateUserPassword = (req, res, next) => {
-  req.user = {id:2};
-  const id = req.user.id;
-  const { oldPassword = null, newPassword = null } = req.body;
+  // Perform password check here
+  const findPassword = await prisma.player.findUnique({where: {player_id}, select : {password : true}});
 
-  // // Perform password check here
-  // const findPassword = 'prisma.user.findUniqe({where: {id}})'
-  // if (!(oldPassword === findPassword.password)) {
-  //   createError(500, 'Password is not matched')
-  // }
+  const isMatch = await bcrypt.compare(oldPassword, findPassword);
+  if (!isMatch) {
+    createError(500, 'Password is not matched');
+  }
 
-  const result = 'prisma.user.update({where : {id : id}, data: {password : newPassword}})'
+  const result = await updatePlayerPassword(player_id, newPassword);
   res.status(200).json({
     message: `Updated ${id} user password successful`,
     result
@@ -60,24 +70,13 @@ export const updateUserPassword = (req, res, next) => {
 }
 
 export const updateUserEmail = (req, res, next) => {
-  req.user = {id: 2};
+  req.user = { id: 2 };
   const id = req.user.id;
-  const { email } = req.body;
+  const { username } = req.body;
 
-  const result = `prisma.user.update({where : {id : id}, data: {email : ${email}}})`
+  const result = `prisma.user.update({where : {id : id}, data: {username : ${username}}})`
   res.status(200).json({
     message: `Updated ${id} user Email successful`,
     result
   });
-}
-
-
-export const deleteUser = (req, res, next) => {
-  const  id  = req.params.id;
-
-  const result = 'prisma.user.delete({where : {id : id}})'
-  res.status(200).json({
-    message: `Delete ${id} user data successful`,
-    result
-  })
 }

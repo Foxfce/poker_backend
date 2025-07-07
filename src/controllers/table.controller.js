@@ -1,4 +1,3 @@
-import prisma from "../config/prisma.client.js";
 import { generatedTableId } from "../utils/id-generator.util.js";
 
 export const getAllTableId = async (req, res, next) => {
