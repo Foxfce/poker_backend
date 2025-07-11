@@ -10,11 +10,14 @@ import adminRoute from './routes/admin.route.js';
 
 const app = express();
 
-app.use(express.json());
-app.use(cors({
+export const corsSetting = {
     origin: true,
     credentials: true,
-}));
+}
+
+app.use(express.json());
+app.use(cors(corsSetting));
+
 
 app.use("/api/auth",authRoute);
 app.use("/api/lobby",lobbyRoute);

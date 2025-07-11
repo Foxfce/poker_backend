@@ -8,9 +8,9 @@ import { createError } from "../utils/createError.js";
 import { generateToken, signResetToken } from "../utils/jwt.js";
 
 export const register = async (req, res) => {
-    const { username, password, confirmPassword } = req.body;
+    const { username, password} = req.body;
 
-    if (password != confirmPassword) createError(400, "Password is not match with confirm password");
+    // if (password != confirmPassword) createError(400, "Password is not match with confirm password");
 
     const foundUser = await findUserByEmail(username);
 

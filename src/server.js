@@ -1,10 +1,29 @@
 import dotenv from 'dotenv';
-import app from './app.js'
+import app, { corsSetting } from './app.js'
+import http from 'http';
+import { Server } from 'socket.io'
+import { registerSocketHandlers } from './handlers/socket.handler.js';
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3069;
 
-app.listen(PORT,()=>{
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: corsSetting,
+    }
+})
+
+io.on('connection', (socket)=>{
+    console.log('User connected', socket.id);
+    registerSocketHandlers(io, socket);
+
+
+})
+
+
+server.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 })
