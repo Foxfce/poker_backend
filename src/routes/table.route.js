@@ -11,6 +11,6 @@ const tableRoute = express.Router();
 tableRoute.get("/", getAllTableId);
 tableRoute.post("/", joinTableById);
 tableRoute.post("/create",createTable);
-tableRoute.delete('/:tableId',deleteTable)
+tableRoute.delete('/:tableId',deleteTable);
 
 export default tableRoute;
