@@ -23,6 +23,7 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
+    "@types/socket.io": "^3.0.1",
     "prisma": "^6.9.0"
   },
   "repository": {

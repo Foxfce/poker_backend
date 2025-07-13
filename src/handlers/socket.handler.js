@@ -230,6 +230,7 @@ io.on('connection', (socket) => {
         // e.g., socket.user = { id: 'some_user_id' };
     }
 
+    
     socket.on('joinRoomWithPassword', async ({ roomId, password }, callback) => {
         // ... (your existing validation logic) ...
 
