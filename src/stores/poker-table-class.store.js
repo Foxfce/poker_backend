@@ -1,0 +1,123 @@
+export default class PokerTable {
+    constructor(tableId, password = null) {
+        this.tableId = tableId;
+        this.password = password;
+        this.players = [null, null, null, null];  // 4 seats initially empty
+        this.gameState = {
+            round: null, // no value, become 1 when start
+            card_revealed: 3,
+            current_pot: 1,
+            current_bet: 50,
+            player: [], // don't allow null store as seatId (1-4)
+            call_player: [], // when call action perform move player to this as seatId(1-4)
+            allIn_player: [], // when all in action put player as seatId(1-4), to prevent callback to bet again
+            fold_player: [], // when call action fold move player to this as seatId(1-4)
+            blinds_seatId: 1, // increment by 1 for next gamestart
+            player_turn: { playerId: null, playerName: null },
+            winner: null,
+        };
+        this.potState = 0; // example pot info participant as seatId dump player 
+        this.sidePotState = []; // When all-in action appear add pot data to this got participant 
+        this.playerState = new Map(); // store player state for eaiser update when done update to players
+        this.seatState = [null, null, null, null]; // update playerId here for ref seatId is this.seatState[index+1]
+        this.community_card = [null, null, null, null, null];
+        this.player1 = [null, null];
+        this.player2 = [null, null];
+        this.player3 = [null, null];
+        this.player4 = [null, null];
+        this.player1_rank = null;
+        this.player2_rank = null;
+        this.player3_rank = null;
+        this.player4_rank = null;
+        this.chatState = [];
+    }
+
+    // --- Player state structure
+    // id: player_id,
+    // seatId: null,
+    // name: nick_name,
+    // role: role,
+    // image: image,
+    // pocket: null,
+
+    // ----Side Pot state structure
+    // pot_number: 2,
+    // price: 2000,
+    // participant: [1, 4],
+
+
+    // Add player to first empty slot, returns players index or -1 if full
+    // This function is for join room logic
+    addPlayer({ player_id, nick_name, role, image }) {
+        const initialData = {
+            id: player_id,
+            seatId: null,
+            name: nick_name,
+            role: role,
+            image: image,
+            pocket: null,
+        }
+
+        const playersIndex = this.players.findIndex(p => p === null);
+        if (playersIndex === -1) return -1;
+
+        this.players[playersIndex] = initialData
+
+        return;
+    }
+
+    addPlayerToSeat(playerId, userData) {
+        const playersIndex = this.players.findIndex(p => p === null);
+        if (playersIndex === -1) return -1;
+        this.players[seatIndex] = playerId;
+
+        // Initialize player state
+        this.playerState.set(playerId, {
+            id: userData.id,
+            seatId: null,
+            name: userData.name,
+            image: userData.image,
+            pocket: null,
+        });
+
+        return seatIndex;
+    }
+
+    // Remove player from table
+    removePlayer(playerId) {
+        const seatIndex = this.players.findIndex(p => p === playerId);
+        if (seatIndex !== -1) {
+            this.players[seatIndex] = null;
+            this.playerState.delete(playerId);
+            return true;
+        }
+        return false;
+    }
+
+    // Update pot amount
+    updatePot(amount) {
+        this.potState.potAmount += amount;
+    }
+
+    // Set gate state (example)
+    setGateState(newGateState) {
+        this.gateState = { ...this.gateState, ...newGateState };
+    }
+
+    updateChatBox({ message, name, player_id }) {
+        console.log(this.chatState);
+        this.chatState = [...(this.chatState), { message, name, player_id }];
+    }
+
+    // Get current state snapshot (for broadcasting or UI)
+    getState() {
+        return {
+            tableId: this.tableId,
+            password: this.password,
+            players: this.players,
+            gateState: this.gateState,
+            potState: this.potState,
+            playerState: Array.from(this.playerState.entries()),
+        };
+    }
+}
