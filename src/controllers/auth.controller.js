@@ -5,7 +5,7 @@ import {
     verifyPlayer
 } from "../services/auth.service.js";
 import { createError } from "../utils/createError.js";
-import { generateToken, signResetToken } from "../utils/jwt.js";
+import { generateToken, signResetToken } from "../utils/jwt.util.js";
 
 export const register = async (req, res) => {
     const { username, password} = req.body;

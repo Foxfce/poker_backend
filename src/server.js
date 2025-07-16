@@ -41,23 +41,23 @@ io.on('connection', (socket) => {
     //To Create Guest Player
     socket.on('createGuestPlayer', () => {
         console.log(`user ${socket.id} has create guest data`);
-        const guestData = {
-            nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
-            player_id: socket.id.slice(5, 10),
-            role: 'GUEST'
-        };
-        if (!socket.user) socket.user = {};
+            const guestData = {
+                nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
+                player_id: socket.id.slice(5, 10),
+                role: 'GUEST'
+            };
+            if (!socket.user) socket.user = {};
 
-        socket.user.name = guestData.nick_name;
-        socket.user.id = guestData.player_id;
-        socket.user.role = guestData.role;
+            socket.user.name = guestData.nick_name;
+            socket.user.id = guestData.player_id;
+            socket.user.role = guestData.role;
 
-        socket.data.user = {}
-        socket.data.user.name = guestData.nick_name;
-        socket.data.user.id = guestData.player_id;
-        socket.data.user.role = guestData.role;
+            socket.data.user = {}
+            socket.data.user.name = guestData.nick_name;
+            socket.data.user.id = guestData.player_id;
+            socket.data.user.role = guestData.role;
 
-        socket.emit('guestPlayerCreated', guestData);
+            socket.emit('guestPlayerCreated', guestData);
     });
 
     socket.on('quickJoinTable', ({ nick_name, player_id, role, image = null }, callback) => {

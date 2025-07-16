@@ -100,16 +100,6 @@ export const attachUserDataToSocket = (io, socket)=>{
     }
 }
 
-export const checkTableEmpty = (io, socket) =>{
-    const tableId = socket.tableId
-    if(tableData.has(tableId)){
-        tableData.delete(tableId);
-        console.log(`Delete table ${tableId}`);
-        return ;
-    }
-    console.log(`Table already gone`);
-}
-
 export const reConnectedHandler = (io, socket) => {
 if (socket.recovered) {
         console.log(`Socket ${socket.id} (recovered from old ID ${socket.handshake.query.sid}) reconnected to room${socket?.rooms.values().next().value}`);
