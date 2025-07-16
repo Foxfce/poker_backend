@@ -10,7 +10,7 @@ import PokerTable from './stores/poker-table-class.store.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3069;
+const PORT = process.env.PORT || 6969;
 
 
 const waitForDisconnected = 15; // time in second for disconnecting player
@@ -24,10 +24,6 @@ const io = new Server(server, {
         maxDisconnectionDuration: waitForDisconnected *1000, // Keep disconnection  time
         skipMiddlewares : true,
     },
-    connectionStateRecovery: {
-        maxDisconnectionDuration: 10 * 1000,
-        skipMiddlewares: true,
-    }
 });
 
 io.on('connection', (socket) => {
