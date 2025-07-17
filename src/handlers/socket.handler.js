@@ -1,17 +1,17 @@
 import { playersInGames, tableData } from "../stores/table-data.store.js";
 
-export const registerSocketHandlers = (io, socket)=>{
+export const registerSocketHandlers = (io, socket) => {
     // console.log('Player has connected :', socket.id);
 
     // Operation
 
-    socket.on('disconnect',async (reason) =>{
+    socket.on('disconnect', async (reason) => {
         console.log(`Socket ${socket.id} disconnected. Reason: ${reason}`);
 
-        const userId = socket?.data.user.id;
+        const userId = socket?.user.id;
         const tableId = socket?.tableId;
 
-        if(userId && tableId && playersInGames.has(userId)){
+        if (userId && tableId && playersInGames.has(userId)) {
             console.log(`Starting 10-second timer for user ${userId} in room ${tableId}.`);
             const playerInfo = playersInGames.get(userId);
 
@@ -22,133 +22,126 @@ export const registerSocketHandlers = (io, socket)=>{
 
                 //Operation to tell player to remove player from game state they are in
 
-                 const socketsInRoom = await io.in(tableId).fetchSockets();
-                    const currentOccupancy = socketsInRoom.length;
-                    io.to(tableId).emit('playerTrulyDisconnected', {
-                        userId: userId,
-                        message: `${socket?.data.user.name || 'A player'} has left the game.`,
-                        tableId: tableId,
-                        occupancy: currentOccupancy
-                    });
-                
+                const socketsInRoom = await io.in(tableId).fetchSockets();
+                const currentOccupancy = socketsInRoom.length;
+                io.to(tableId).emit('playerTrulyDisconnected', {
+                    userId: userId,
+                    message: `${socket?.user.name || 'A player'} has left the game.`,
+                    tableId: tableId,
+                    occupancy: currentOccupancy
+                });
+
             }, 10 * 1000); // 10s time out
 
             playerInfo.disconnectionTimer = disconnectionTimer;
             playersInGames.set(userId, playerInfo);// Update Player with timer ID
 
-        }else{
+        } else {
             console.log(`User ${userId} intentionally disconnected from room ${tableId}.`);
             playersInGames.delete(userId);
             const socketInRoom = await io.in(tableId).fetchSockets();
             const currentOccupancy = socketInRoom.length;
-            io.to(tableId).emit(`playerTrulyDisconnected`,{
-                userId : userId,
-                message: `${socket?.data.user.name || 'A player'} has left the game.`,
-                tableId : tableId,
-                occupancy : currentOccupancy
+            io.to(tableId).emit(`playerTrulyDisconnected`, {
+                userId: userId,
+                message: `${socket?.user.name || 'A player'} has left the game.`,
+                tableId: tableId,
+                occupancy: currentOccupancy
             });
         }
     });
 
-    socket.on('leaveTable', async ({tableId}) =>{
-        const userId = socket?.data.user.id;
-        if(userId && playersInGames.has(userId)){
+    socket.on('leaveTable', async ({ tableId }) => {
+        const userId = socket?.user.id;
+        if (userId && playersInGames.has(userId)) {
             clearTimeout(playersInGames.get(userId).disconnectionTimer);
             playersInGames.delete(userId);
-   
+
             socket.leave(tableId);
             console.log(`User ${userId} manually left room ${tableId}.`);
-            
+
             const socketsInRoom = await io.in(tableId).fetchSockets();
             const currentOccupancy = socketsInRoom.length;
-            if(currentOccupancy <= 0){
+            if (currentOccupancy <= 0) {
                 tableData.delete(tableId);
                 return;
             }
 
-            const players = tableData.get(tableId).players.filter(player => player.id === userId ? null: player)
+            const players = tableData.get(tableId).players.filter(player => player.id === userId ? null : player)
             tableData.get(tableId).players = players
-            io.to(tableId).emit('sendUpdateState',{tableData : tableData.get(tableId)});
-            
-            io.to(tableId).emit(`playerTrulyDisconnected`,{
-                userId : userId,
-                message: `${socket?.data.user.name || 'A player'} has left the game.`,
-                tableId : tableId,
-                occupancy : currentOccupancy
+            io.to(tableId).emit('sendUpdateState', { tableData: tableData.get(tableId) });
+
+            io.to(tableId).emit(`playerTrulyDisconnected`, {
+                userId: userId,
+                message: `${socket?.user.name || 'A player'} has left the game.`,
+                tableId: tableId,
+                occupancy: currentOccupancy
             });
         }
 
     });
 };
 
-export const attachUserDataToSocket = (io, socket)=>{
+export const attachUserDataToSocket = (io, socket) => {
     if (socket.handshake.auth.token) {
-        if(!socket.user){
-            socket.user={}
+        if (!socket.user) {
+            socket.user = {}
         };
         socket.user.name = socket.handshake.auth.nick_name;
         socket.user.id = socket.handshake.auth.player_id;
         socket.user.role = socket.handshake.auth.role;
-        socket.user.image = socket.handshake.auth.image;
-
-        socket.data.user={}
-        socket.data.user.name = socket.handshake.auth.nick_name;
-        socket.data.user.id = socket.handshake.auth.player_id;
-        socket.data.user.role = socket.handshake.auth.role;
-        socket.data.user.image = socket.handshake.auth.image;
         return
     }
 }
 
 export const reConnectedHandler = (io, socket) => {
-if (socket.recovered) {
+    if (socket.recovered) {
         console.log(`Socket ${socket.id} (recovered from old ID ${socket.handshake.query.sid}) reconnected to room${socket?.rooms.values().next().value}`);
-        const userId = socket?.data.user.id;
-        const userName = socket?.data.user.name;
-        
+        const userId = socket?.user.id;
+        const userName = socket?.user.name;
+
         if (playersInGames.has(userId)) {
             const playerInfo = playersInGames.get(userId);
             clearTimeout(playerInfo.disconnectionTimer);
             playerInfo.socketId = socket.id; // Update to new socket ID
-            
+
             io.to(playerInfo.tableId).emit('playerReconnected', { userId: userId, message: `${userName || 'Player'} has reconnected!` }); // Annouced back to player reconnected
         }
     } else {
         // New connection and has to join tableID and re-enter password
         console.log(`New connection : ${socket.id}`);
-        if (socket.data.user) {
-            userId = socket.data.user.id;
-            userName = socket.data.user.name || 'Authenticated Player';
+        if (socket.user) {
+            userId = socket.user.id;
+            userName = socket.user.name || 'Authenticated Player';
             console.log(`New authenticated connection: ${userName} (${userId})`);
-            socket.user = socket.data.user;
+            socket.user = socket.user;
         } else {
             const clientGuestId = socket.handshake.auth?.player_id;
             const clientGuestName = socket.handshake.auth?.nick_name;
-            
+
             if (clientGuestId) {
                 const userId = clientGuestId;
                 const userName = clientGuestName || `Guest_${userId.substring(0, 5)}`;
-                
+
                 console.log(`New guest connection. ID: ${userId}, Name: ${userName}`);
-                
+
                 socket.user = {};
-                socket.data.user = {};
-                
+                socket.user = {};
+
                 socket.guestId = userId
-                socket.data.id = userId;
-                socket.data.name = userName;
+                socket.id = userId;
+                socket.name = userName;
                 socket.user = { id: userId, name: userName, role: 'GUEST' };
                 //Update PlayerInGames
                 if (playersInGames.has(userId)) {
                     const playerInfo = playersInGames.get(userId);
-                    
+
                     if (playerInfo.disconnectionTimer) {
-                        
+
                         clearTimeout(playerInfo.disconnectionTimer);
                         playerInfo.socketId = socket.id;
-                        
+
                         playersInGames.set(userId, playerInfo);
-                        
+
                         const tableId = playerInfo.tableId;
                         socket.join(tableId);
                         socket.tableId = tableId;
@@ -156,7 +149,6 @@ if (socket.recovered) {
                             user: {
                                 player_id: userId,
                                 nick_name: userName,
-                                image: null,
                                 role: 'GUEST'
                             },
                             message: `${userName} has rejoined room ${tableId}!`
@@ -323,7 +315,7 @@ if (socket.recovered) {
 //         socket.currentRoom = tableId; // Store the room ID on the socket for easier management
 //         console.log(`User ${socket.id} joined room "${tableId}".`);
 
-//         // 5. Send success ACK to the client, including data for navigation
+//         // 5. Send success ACK to the client, including for navigation
 //         if (callback) {
 //             callback({
 //                 success: true,

@@ -1,9 +1,9 @@
 import { createError } from "../utils/createError.js";
-import { verifyToken } from "../utils/jwt.util.js";
+import { generatePublicToken, verifyToken } from "../utils/jwt.util.js";
 
-export const authMiddleware =  ( req, res, next) =>{
+export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    if(!authHeader) createError(401, "Empty Token");
+    if (!authHeader) createError(401, "Empty Token");
 
     const token = authHeader.split(' ')[1];
     try {
@@ -15,13 +15,14 @@ export const authMiddleware =  ( req, res, next) =>{
     }
 }
 
-export const authAdminMiddleware = (req, res, next) =>{
+export const authAdminMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
-    if(!authHeader) createError(401, "Empty Token");
+    if (!authHeader) createError(401, "Empty Token");
 
     const token = authHeader.split(' ')[1];
     try {
         const payload = verifyToken(token);
+        if (payload.role !== 'ADMIN') createError(400, 'Unauthorized Access');
         req.playerId = payload.playerId;
         next();
     } catch (error) {
@@ -29,23 +30,48 @@ export const authAdminMiddleware = (req, res, next) =>{
     }
 }
 
-export const SocketMiddleware = (socket, next) =>{
-    const token = socket.handshake.auth.token;
-    const userId = socket.handshake.auth.player_id;
+export const SocketMiddleware = async (socket, next) => {
+    try {
+        const token = socket.handshake.auth.token;
+        const userId = socket.handshake.auth.player_id;
 
-    // Guest Route
-    if(!token){
-        if(socket.recover)
+        // Guest Route
+        if (!token) {
 
+            const guestData = {
+                nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
+                player_id: socket.id.slice(5, 10),
+                role: 'GUEST'
+            };
 
+            if (!socket.user) socket.user = {};
 
-        if (!socket.user) socket.user = {};
+            socket.user.name = guestData.nick_name;
+            socket.user.id = guestData.player_id;
+            socket.user.role = guestData.role;
 
-        socket.user.name = `Guest${Math.floor(Math.random() * 10000)}`;
-        socket.user.id = socket.id.slice(5, 10);
-        socket.user.role = 'GUEST';
+            const guestToken = generatePublicToken(guestData);
 
-        socket.emit('guestPlayerCreated', guestData);
-        socket.user = {}
+            socket.emit('guestPlayerCreated', guestToken);
+
+            if (socket.recover) {
+
+            }
+            // next();
+        }
+
+        if (token) {
+
+            const payload = verifyToken(token);
+            const player = await getPlayer(payload.player_id);
+
+            if (!socket.user) socket.user = {};
+            socket.user.name = player.nick_name;
+            socket.user.id = player.player_id;
+            socket.user.role = player.role;
+        }
+
+    } catch (error) {
+        next(error);
     }
 }

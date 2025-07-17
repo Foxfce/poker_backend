@@ -25,3 +25,16 @@ export const verifyResettToken = (token) => {
     const payload = jwt.verify(token, process.env.RESET_SECRET, { algorithms: ["HS256"] });
     return payload;
 }
+
+export const generatePublicToken = (data) =>{
+    const token = jwt.sign({ data }, process.env.JWT_PUBLIC_SECRET, {
+        expiresIn: '1d',
+        algorithm: "HS256",
+    });
+    return token;
+}
+
+export const verifyPublicToken = (token) =>{
+    const payload = jwt.verify(token, process.env.JWT_PUBLIC_SECRET, { algorithms: ["HS256"] });
+    return payload;
+}
