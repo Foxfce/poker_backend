@@ -2,8 +2,10 @@ export default class PokerTable {
     constructor(tableId, password = null) {
         this.tableId = tableId;
         this.password = password;
-        this.players = [null, null, null, null];  // 4 seats initially empty
+        this.players = [null, null, null, null]; // update playerId here for ref seatId is this.seatState[index+1] 
         this.gameState = {
+            tableId: this.tableId,
+            password: this.password,
             round: null, // no value, become 1 when start
             card_revealed: 3,
             current_pot: 1,
@@ -19,7 +21,7 @@ export default class PokerTable {
         this.potState = 0; // example pot info participant as seatId dump player 
         this.sidePotState = []; // When all-in action appear add pot data to this got participant 
         this.playerState = new Map(); // store player state for eaiser update when done update to players
-        this.seatState = [null, null, null, null]; // update playerId here for ref seatId is this.seatState[index+1]
+        this.seatState = [null, null, null, null]; // 4 seats initially empty
         this.community_card = [null, null, null, null, null];
         this.player1 = [null, null];
         this.player2 = [null, null];
@@ -66,21 +68,15 @@ export default class PokerTable {
         return;
     }
 
-    addPlayerToSeat(playerId, userData) {
-        const playersIndex = this.players.findIndex(p => p === null);
-        if (playersIndex === -1) return -1;
-        this.players[seatIndex] = playerId;
 
-        // Initialize player state
-        this.playerState.set(playerId, {
-            id: userData.id,
-            seatId: null,
-            name: userData.name,
-            image: userData.image,
-            pocket: null,
-        });
+    addPlayerToSeat(seatNumber, player_id) {
+        if(!seatNumber && !player_id) return false;
+        if(this.seatState[seatNumber-1]) return false;
+        this.seatState[seatNumber-1] = player_id
 
-        return seatIndex;
+        const index = this.players.findIndex(player => player.id === player_id);
+        this.players[index].seatId = seatNumber;
+        return true 
     }
 
     // Remove player from table

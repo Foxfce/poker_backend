@@ -10,7 +10,7 @@ import PokerTable from './stores/poker-table-class.store.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 6969;
+const PORT = process.env.PORT || 3069;
 
 
 const waitForDisconnected = 15; // time in second for disconnecting player
@@ -21,8 +21,8 @@ const io = new Server(server, {
         origin: corsSetting,
     },
     connectionStateRecovery: {
-        maxDisconnectionDuration: waitForDisconnected *1000, // Keep disconnection  time
-        skipMiddlewares : true,
+        maxDisconnectionDuration: waitForDisconnected * 1000, // Keep disconnection  time
+        skipMiddlewares: true,
     },
 });
 
@@ -41,23 +41,23 @@ io.on('connection', (socket) => {
     //To Create Guest Player
     socket.on('createGuestPlayer', () => {
         console.log(`user ${socket.id} has create guest data`);
-            const guestData = {
-                nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
-                player_id: socket.id.slice(5, 10),
-                role: 'GUEST'
-            };
-            if (!socket.user) socket.user = {};
+        const guestData = {
+            nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
+            player_id: socket.id.slice(5, 10),
+            role: 'GUEST'
+        };
+        if (!socket.user) socket.user = {};
 
-            socket.user.name = guestData.nick_name;
-            socket.user.id = guestData.player_id;
-            socket.user.role = guestData.role;
+        socket.user.name = guestData.nick_name;
+        socket.user.id = guestData.player_id;
+        socket.user.role = guestData.role;
 
-            socket.data.user = {}
-            socket.data.user.name = guestData.nick_name;
-            socket.data.user.id = guestData.player_id;
-            socket.data.user.role = guestData.role;
+        socket.data.user = {}
+        socket.data.user.name = guestData.nick_name;
+        socket.data.user.id = guestData.player_id;
+        socket.data.user.role = guestData.role;
 
-            socket.emit('guestPlayerCreated', guestData);
+        socket.emit('guestPlayerCreated', guestData);
     });
 
     socket.on('quickJoinTable', ({ nick_name, player_id, role, image = null }, callback) => {
@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
             const playersForNewTable = quickJoinQueue.splice(0, 4); // Cut first 4 players store in variable
 
             // Logic link tableId <=> default game state here
-            const newPokerTable = new PokerTable(tableId);
+            const newPokerTable = new PokerTable(tableId,null);
             tableData.set(tableId, newPokerTable);
 
             //Assigned player to newly created tableId
@@ -151,7 +151,7 @@ io.on('connection', (socket) => {
         if (tableData.has(tableId)) {
             tableData.get(tableId).updateChatBox({ name, message, player_id });
             const chatData = tableData.get(tableId).chatState;
-            io.to(tableId).emit('getMessage', {chatData : chatData});
+            io.to(tableId).emit('getMessage', { chatData: chatData });
             return;
         }
         io.to(socket.id).emit('getMessage', { chatData: null });
@@ -164,6 +164,18 @@ io.on('connection', (socket) => {
 
         if (callback) return callback({ success: true, message: `Retrieved gameState successful`, gameStateData })
     });
+
+    socket.on('joinSeat', async ({ tableId, player_id, seatNumber }, callback) => {
+        console.log(`${socket.user.id} sit on seat ${seatNumber}`);
+        console.log(tableId);
+        console.log(tableData);
+        if (!tableData.has(tableId)) return callback({ success: false, message: `There is no tableData : ${tableId}` });
+        const tableState = tableData.get(tableId);
+        const result = tableState.addPlayerToSeat(seatNumber, player_id);
+        callback({ success: result, message: result ? `Player ${player_id} has been seated` : `Seat ${seatNumber} already taken` });
+
+        if (result) io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });
+    })
 })
 
 
