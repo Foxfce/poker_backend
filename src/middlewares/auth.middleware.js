@@ -36,10 +36,9 @@ export const SocketMiddleware = async (socket, next) => {
         const player_id = socket.handshake.auth?.player_id;
         const playerName = socket.handshake.auth?.nick_name;
         const role = socket.handshake.auth?.role;
-        socket.id = 
 
         // Guest Route
-        if (!token) {
+        if(!token) {
 
             const guestData = {
                 nick_name: `Guest${Math.floor(Math.random() * 10000)}`,
