@@ -8,7 +8,7 @@ export const authMiddleware = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const payload = verifyToken(token);
-        req.playerId = payload.playerId;
+        req.player_id = payload.player_id;
         next();
     } catch (error) {
         createError(403, "Invalid Token")
@@ -23,7 +23,7 @@ export const authAdminMiddleware = (req, res, next) => {
     try {
         const payload = verifyToken(token);
         if (payload.role !== 'ADMIN') createError(400, 'Unauthorized Access');
-        req.playerId = payload.playerId;
+        req.player_id = payload.player_id;
         next();
     } catch (error) {
         createError(403, "Invalid Token")
@@ -32,8 +32,11 @@ export const authAdminMiddleware = (req, res, next) => {
 
 export const SocketMiddleware = async (socket, next) => {
     try {
-        const token = socket.handshake.auth.token;
-        const userId = socket.handshake.auth.player_id;
+        const token = socket.handshake.auth?.token;
+        const player_id = socket.handshake.auth?.player_id;
+        const playerName = socket.handshake.auth?.nick_name;
+        const role = socket.handshake.auth?.role;
+        socket.id = 
 
         // Guest Route
         if (!token) {
@@ -61,14 +64,16 @@ export const SocketMiddleware = async (socket, next) => {
         }
 
         if (token) {
-
             const payload = verifyToken(token);
-            const player = await getPlayer(payload.player_id);
+            if (payload.role === 'MEMBER') {
 
-            if (!socket.user) socket.user = {};
-            socket.user.name = player.nick_name;
-            socket.user.id = player.player_id;
-            socket.user.role = player.role;
+                const player = await getPlayer(payload.player_id);
+
+                if (!socket.user) socket.user = {};
+                socket.user.name = player.nick_name;
+                socket.user.id = player.player_id;
+                socket.user.role = player.role;
+            }
         }
 
     } catch (error) {

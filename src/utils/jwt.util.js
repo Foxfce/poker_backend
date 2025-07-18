@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
-export const generateToken = (playerId) => {
-    const token = jwt.sign({ playerId }, process.env.JWT_SECRET, {
+export const generateToken = ({player_id, name, role}) => {
+    const token = jwt.sign({ player_id ,name, role}, process.env.JWT_SECRET, {
         expiresIn: '1d',
         algorithm: "HS256",
     });
@@ -13,8 +13,8 @@ export const verifyToken = (token) => {
     return payload;
 }
 
-export const signResetToken = (playerId) => {
-    const payload = jwt.sign({ playerId }, process.env.RESET_SECRET, {
+export const signResetToken = (player_id) => {
+    const payload = jwt.sign({ player_id }, process.env.RESET_SECRET, {
         algorithm: "HS256",
         expiresIn: '1h',
     });

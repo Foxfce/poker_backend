@@ -32,7 +32,7 @@ export const login = async (req, res) => {
     const player = await verifyPlayer(username, password);
     if (!player) createError(404, "Invalid credentials");
 
-    const accessToken = generateToken(player.player_id);
+    const accessToken = generateToken({player_id: player.player_id, name : player.nick_name, role : player.role});
     res.status(200).json({
         message: "Login Successful",
         accessToken
@@ -56,8 +56,8 @@ export async function resetPassword(req, res) {
     const { password } = req.body;
     try {
         const payload = verifyResetToken(token);
-        const playerId = payload.playerId;
-        const player = await updatePlayerPassword(playerId, password);
+        const player_id = payload.player_id;
+        const player = await updatePlayerPassword(player_id, password);
         res.json({
             message: "Password reset successful",
             player: { id: player.id, player_id: player.player_id, username: player.username },

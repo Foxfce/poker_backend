@@ -14,8 +14,8 @@ const userRoute = express.Router();
 userRoute.get('/all', getAllUserData);
 userRoute.get('/me', authMiddleware, getUserProfile);
 userRoute.post('/me', authMiddleware, updateUserProfile);
-userRoute.get('/get/:playerId', getUserById);
+userRoute.get('/get/:player_id', getUserById);
 userRoute.patch('/password', authMiddleware, updateUserPassword);
-userRoute.patch('/email', updateUserEmail);
+userRoute.patch('/email', updateUserEmail); // Not done yet
 
 export default userRoute;

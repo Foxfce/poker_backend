@@ -59,11 +59,11 @@ export const verifyPlayer = async (username, password) => {
     return isMatch ? player : null;
 }
 
-export const updatePlayerPassword = async (playerId, newPassword) => {
+export const updatePlayerPassword = async (player_id, newPassword) => {
     const hash = bcrypt.hashSync(newPassword, 10);
     const player = await prisma.player.update({
         where: {
-            player_id: playerId
+            player_id: player_id
         },
         data: {
             password: hash,

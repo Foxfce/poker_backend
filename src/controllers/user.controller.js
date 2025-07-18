@@ -18,7 +18,7 @@ export const getAllUserData = async (req, res, next) => {
 }
 
 export const getUserProfile = async (req, res, next) => {
-  const player_id = req.playerId;
+  const player_id = req.player_id;
 
   const player = await getPlayer(player_id);
   res.status(200).json({
@@ -28,17 +28,17 @@ export const getUserProfile = async (req, res, next) => {
 }
 
 export const getUserById =async (req, res, next) => {
-  const playerId = req.params.playerId
+  const player_id = req.params.player_id
 
-  const result = await findPlayerBy('player_id',playerId)
+  const result = await findPlayerBy('player_id',player_id)
   res.status(200).json({
-    message: `Get ${playerId} user data successful`,
+    message: `Get ${player_id} user data successful`,
     result
   })
 }
 
 export const updateUserProfile = async (req, res, next) => {
-  const player_id = req.playerId;
+  const player_id = req.player_id;
   const data = req.body  // edit nick_name , profile_picture, about
 
   const result = await editPlayerProfile(player_id,data);
@@ -49,7 +49,7 @@ export const updateUserProfile = async (req, res, next) => {
 }
 
 export const updateUserPassword = async (req, res, next) => {
-  const player_id = req.playerId;
+  const player_id = req.player_id;
   const { oldPassword, newPassword } = req.body;
 
   if(!oldPassword || !newPassword) createError(400, "Empty password");
