@@ -74,7 +74,7 @@ io.on('connection', (socket) => {
             const playersForNewTable = quickJoinQueue.splice(0, 4); // Cut first 4 players store in variable
 
             // Logic link tableId <=> default game state here
-            const newPokerTable = new PokerTable(tableId,null);
+            const newPokerTable = new PokerTable(tableId, null);
             tableData.set(tableId, newPokerTable);
 
             //Assigned player to newly created tableId
@@ -167,15 +167,42 @@ io.on('connection', (socket) => {
 
     socket.on('joinSeat', async ({ tableId, player_id, seatNumber }, callback) => {
         console.log(`${socket.user.id} sit on seat ${seatNumber}`);
-        console.log(tableId);
-        console.log(tableData);
         if (!tableData.has(tableId)) return callback({ success: false, message: `There is no tableData : ${tableId}` });
         const tableState = tableData.get(tableId);
         const result = tableState.addPlayerToSeat(seatNumber, player_id);
         callback({ success: result, message: result ? `Player ${player_id} has been seated` : `Seat ${seatNumber} already taken` });
 
         if (result) io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });
-    })
+    });
+
+    socket.on('gameStart', async ({ player_id, tableId }) => {
+        console.log(`${socket?.user.id} is starting the game ${socket?.tableId}`);
+        const tableState = tableData.get(tableId);
+
+        const playerOnSeat = () => (tableState.seatState.filter(player => player != null)).length;
+
+        if (playerOnSeat() >= 2) {
+            io.to(tableId).emit('setTimerStartGame', { timer: 10 })
+
+            socket.once('cancelGameStart', async ({ player_id, tableId }) => {
+                console.log(`player ${socket?.user.id} is leaving table`);
+                if (playerOnSeat() < 2) {
+                    console.log(`Canceling game at table ${tableId}`);
+                    io.to(tableId).emit('cancelGameStart') // sending to cancel timer on front end
+                    clearTimeout(startTimeout);
+                }
+            });
+
+            const startTimeout = setTimeout(() => {
+                if (playerOnSeat >= 2) {
+                    tableState.setRound();
+                    return io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });
+                }else{
+                    io.to(tableId).emit('cancelGameStart');
+                }
+            }, 8 * 1000);
+        }
+    });
 })
 
 
