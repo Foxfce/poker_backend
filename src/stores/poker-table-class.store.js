@@ -15,7 +15,7 @@ export default class PokerTable {
             allIn_player: [], // when all in action put player as seatId(1-4), to prevent callback to bet again
             fold_player: [], // when call action fold move player to this as seatId(1-4)
             blinds_seatId: 1, // increment by 1 for next gamestart
-            player_turn: { playerId: null, playerName: null },
+            player_turn: null, // store as player_id
             winner: null,
         };
         this.potState = 0; // example pot info participant as seatId dump player 
@@ -70,13 +70,13 @@ export default class PokerTable {
 
 
     addPlayerToSeat(seatNumber, player_id) {
-        if(!seatNumber && !player_id) return false;
-        if(this.seatState[seatNumber-1]) return false;
-        this.seatState[seatNumber-1] = player_id
+        if (!seatNumber && !player_id) return false;
+        if (this.seatState[seatNumber - 1]) return false;
+        this.seatState[seatNumber - 1] = player_id
 
         const index = this.players.findIndex(player => player.id === player_id);
         this.players[index].seatId = seatNumber;
-        return true 
+        return true
     }
 
     // Remove player from table
@@ -95,9 +95,19 @@ export default class PokerTable {
         this.potState.potAmount += amount;
     }
 
-    // Set gate state (example)
-    setGateState(newGateState) {
-        this.gateState = { ...this.gateState, ...newGateState };
+    setRound() {
+        const round = this.gameState.round
+        if (!round) return this.gameState.round = 1;
+        if (round === 4) return this.gameState.round = null;
+        this.gameState.round += 1
+    }
+
+    setNextPlayerTurrn() {
+        const currentPlayer = this.gameState.player_turn;
+        if (!currentPlayer) return this.gameState.player_turn = this.seatState[this.blinds_seatId]
+        const currentSeatIndex = this.seatState.findIndex(player => player === currentPlayer);
+        if (currentSeatIndex + 1 >= 4) return this.gameState.player_turn = this.seatState[0];
+        return this.gameState.player_turn = this.seatState[currentSeatIndex + 1];
     }
 
     updateChatBox({ message, name, player_id }) {

@@ -4,7 +4,7 @@ import http from 'http';
 import { Server } from 'socket.io'
 import { attachUserDataToSocket, reConnectedHandler, registerSocketHandlers } from './handlers/socket.handler.js';
 import { playersInGames, quickJoinQueue, tableData } from './stores/table-data.store.js';
-import { clearTimeout } from 'timers';
+import { clearInterval, clearTimeout } from 'timers';
 import { generatedTableId } from './utils/id-generator.util.js';
 import PokerTable from './stores/poker-table-class.store.js';
 
@@ -189,20 +189,47 @@ io.on('connection', (socket) => {
                 if (playerOnSeat() < 2) {
                     console.log(`Canceling game at table ${tableId}`);
                     io.to(tableId).emit('cancelGameStart') // sending to cancel timer on front end
-                    clearTimeout(startTimeout);
+                    clearInterval(startInterval);
                 }
             });
 
-            const startTimeout = setTimeout(() => {
-                if (playerOnSeat >= 2) {
-                    tableState.setRound();
-                    return io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });
-                }else{
+            let timeElapsed = 8; // 8 second interval checking if player in sitout and has less than 2 player        
+            
+            const startInterval = setInterval(() => { 
+                timeElapsed += 1; // increment by 1
+
+                // Check current player on seat
+                if (playerOnSeat() < 2) {
+                    socket.off('cancelGameStart');
+
                     io.to(tableId).emit('cancelGameStart');
+                    clearInterval(startInterval);
+                    return;
                 }
-            }, 8 * 1000);
+                
+                if(timeElapsed >= 8){
+                    if (playerOnSeat() >= 2) {
+                        socket.off('cancelGameStart');
+                        
+                        // Set up the gameState
+                        tableState.setRound();
+
+
+                        io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });              
+                        clearInterval(startInterval);
+                        return;
+                    }else{
+                        socket.off('cancelGameStart');
+
+                        io.to(tableId).emit('cancelGameStart');
+                        clearInterval(startInterval);
+                        return;
+                    }
+                }
+            }, 1000);            
         }
     });
+
 })
 
 
