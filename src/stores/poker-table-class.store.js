@@ -1,3 +1,5 @@
+import { cardDeck } from "./table-data.store.js";
+
 export default class PokerTable {
     constructor(tableId, password = null) {
         this.tableId = tableId;
@@ -93,6 +95,23 @@ export default class PokerTable {
     // Update pot amount
     updatePot(amount) {
         this.potState.potAmount += amount;
+    }
+
+    // Set Card
+    drawCard() {
+        const findPlayerSeatIndex = this.seatState.reduce((acc, player, index) => player !== null ? [...acc, index] : acc, []);
+        const numberCardDraw = 5 + (findPlayerSeatIndex.length * 2);
+        const cardIndex = []
+        for (let i = 1; i <= numberCardDraw; i++) {
+            do {
+                let randomNumber = Math.floor(Math.random() * 52);
+                if (!cardIndex.find(number => number === randomNumber ? true : false)) {
+                    cardIndex.push(randomNumber);
+                    break;
+                }
+            } while (true);
+        }
+        this.community_card[0] = cardDeck[cardIndex[0]];
     }
 
     setRound() {

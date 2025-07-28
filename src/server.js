@@ -213,6 +213,7 @@ io.on('connection', (socket) => {
                         
                         // Set up the gameState
                         tableState.setRound();
+                        tableState.drawCard();
 
 
                         io.to(tableId).emit('sendUpdateState', { tableId: tableId, tableData: tableState });              
